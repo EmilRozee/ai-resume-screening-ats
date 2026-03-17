@@ -73,6 +73,7 @@ class Application(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
     status = db.Column(db.String(20), default="applied")
+    shortlisted = db.Column(db.Boolean, default=False)
     resume_path = db.Column(db.String(200))
 
 from pdfminer.high_level import extract_text
@@ -300,14 +301,30 @@ def view_job_applications(current_user, job_id):
         user = User.query.get(app.user_id)
 
         results.append({
+            "application_id": app.id,
             "candidate": user.username,
             "score": match["score"],
+            "shortlisted": app.shortlisted,
             "matched_skills": match["matched"],
             "missing_skills": match["missing"]
         })
-
+    results = sorted(results, key=lambda x: x["score"], reverse=True)
     return jsonify(results)
 
+@app.route("/shortlist/<int:application_id>", methods=["POST"])
+@token_required
+@admin_required
+def shortlist_candidate(current_user, application_id):
+
+    application = Application.query.get(application_id)
+
+    if not application:
+        return jsonify({"error": "Application not found"}), 404
+
+    application.shortlisted = True
+    db.session.commit()
+
+    return jsonify({"message": "Candidate shortlisted"})
 
 if __name__ == "__main__":
     app.run(debug=True)
