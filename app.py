@@ -8,6 +8,7 @@ from functools import wraps
 from pdfminer.high_level import extract_text
 import os
 
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -81,24 +82,26 @@ from pdfminer.high_level import extract_text
 def calculate_match(resume_path, job_skills):
 
     resume_text = extract_text(resume_path).lower()
+    extracted_skills = extract_skills(resume_text)
 
-    skills = [s.strip().lower() for s in job_skills.split(",")]
+    job_skills_list = [s.strip().lower() for s in job_skills.split(",")]
 
     matched = []
     missing = []
 
-    for skill in skills:
-        if skill in resume_text:
+    for skill in job_skills_list:
+        if skill in extracted_skills:
             matched.append(skill)
         else:
             missing.append(skill)
 
-    score = int((len(matched) / len(skills)) * 100) if skills else 0
+    score = int((len(matched) / len(job_skills_list)) * 100) if job_skills_list else 0
 
     return {
         "score": score,
         "matched": matched,
-        "missing": missing
+        "missing": missing,
+        "extracted_skills": extracted_skills
     }
 
 @app.route("/")
@@ -301,12 +304,12 @@ def view_job_applications(current_user, job_id):
         user = User.query.get(app.user_id)
 
         results.append({
-            "application_id": app.id,
             "candidate": user.username,
             "score": match["score"],
             "shortlisted": app.shortlisted,
             "matched_skills": match["matched"],
-            "missing_skills": match["missing"]
+            "missing_skills": match["missing"],
+            "extracted_skills": match["extracted_skills"]
         })
     results = sorted(results, key=lambda x: x["score"], reverse=True)
     return jsonify(results)
