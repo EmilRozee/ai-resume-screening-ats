@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATS Control Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+
+  <header class="hero">
+    <p class="eyebrow">Applicant Tracking System</p>
+    <h1>ATS Control Deck</h1>
+    <p class="subtitle">A simple front end connected to your Flask backend for auth, jobs, and applications.</p>
+    <div class="status-strip">
+      <span id="auth-state" class="pill pill-muted">Not logged in</span>
+      <span id="role-state" class="pill">Role: guest</span>
+      <button id="logout-btn" class="pill-btn" type="button">Logout</button>
+    </div>
+  </header>
+
+  <nav class="view-nav" aria-label="View switcher">
+    <button id="tab-admin" class="tab-btn active" type="button">Admin View</button>
+    <button id="tab-candidate" class="tab-btn" type="button">Candidate View</button>
+  </nav>
+
+  <main class="grid">
+    <section class="card" id="auth-card">
+      <h2>Account</h2>
+      <div class="row two">
+        <input id="reg-username" placeholder="Register username" />
+        <input id="reg-password" type="password" placeholder="Register password" />
+      </div>
+      <div class="row two">
+        <select id="reg-role">
+          <option value="candidate">candidate</option>
+          <option value="admin">admin</option>
+        </select>
+        <button id="register-btn">Register</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row two">
+        <input id="login-username" placeholder="Login username" />
+        <input id="login-password" type="password" placeholder="Login password" />
+      </div>
+      <div class="row two">
+        <button id="login-btn">Login</button>
+        <button id="profile-btn" class="ghost">Get Profile</button>
+      </div>
+
+      <div class="token-wrap">
+        <label for="token">JWT Token</label>
+        <textarea id="token" rows="4" placeholder="Token appears here after login..."></textarea>
+      </div>
+    </section>
+
+    <section class="card role-card" data-view="candidate" id="jobs-card">
+      <h2>Jobs</h2>
+      <div class="row">
+        <button id="load-jobs-btn">Load Jobs</button>
+      </div>
+      <div id="jobs-list" class="list"></div>
+    </section>
+
+    <section class="card role-card" data-view="admin" id="admin-card">
+      <h2>Create Job (Admin)</h2>
+      <div class="column">
+        <input id="job-title" placeholder="Job title" />
+        <textarea id="job-description" rows="4" placeholder="Job description"></textarea>
+        <input id="job-skills" placeholder="skills_required (comma separated)" />
+        <button id="create-job-btn">Create Job</button>
+      </div>
+    </section>
+
+    <section class="card role-card" data-view="candidate" id="apply-card">
+      <h2>Apply to Job (Candidate)</h2>
+      <div class="column">
+        <input id="apply-job-id" type="number" placeholder="Job ID" />
+        <input id="resume-file" type="file" accept=".pdf" />
+        <button id="apply-btn">Apply with Resume</button>
+      </div>
+    </section>
+
+    <section class="card role-card" data-view="admin" id="applications-card">
+      <h2>Applications (Admin)</h2>
+      <div class="row">
+        <button id="load-apps-btn" class="ghost">View All Applications</button>
+      </div>
+      <p class="hint">Use this to review all submitted applications.</p>
+    </section>
+
+    <section class="card full" id="output-card">
+      <h2>API Response</h2>
+      <pre id="output">Ready.</pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

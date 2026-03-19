@@ -1,6 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
@@ -58,7 +58,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
@@ -77,7 +77,23 @@ class Application(db.Model):
     shortlisted = db.Column(db.Boolean, default=False)
     resume_path = db.Column(db.String(200))
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 from pdfminer.high_level import extract_text
+
+def extract_skills(resume_text):
+    # Minimal keyword-based extractor for basic ATS scoring.
+    known_skills = {
+        "python", "flask", "django", "sql", "mysql", "postgresql", "sqlite",
+        "javascript", "typescript", "react", "node", "html", "css", "java",
+        "c++", "c", "git", "docker", "aws", "azure", "pandas", "numpy"
+    }
+
+    words = set(resume_text.lower().replace("\n", " ").split())
+    cleaned = {w.strip(",.;:()[]{}\"'!") for w in words}
+    return sorted(skill for skill in known_skills if skill in cleaned)
 
 def calculate_match(resume_path, job_skills):
 
@@ -107,6 +123,27 @@ def calculate_match(resume_path, job_skills):
 @app.route("/")
 def home():
     return jsonify({"message": "ATS Backend is Running"})
+
+@app.route("/ui", methods=["GET"])
+def ui_home():
+    return render_template("index.html")
+
+@app.route("/jobs", methods=["GET"])
+@token_required
+def list_jobs(current_user):
+    jobs = Job.query.all()
+
+    result = []
+    for job in jobs:
+        result.append({
+            "id": job.id,
+            "title": job.title,
+            "description": job.description,
+            "skills_required": job.skills_required,
+            "created_by": job.created_by
+        })
+
+    return jsonify(result)
 
 @app.route("/admin-dashboard", methods=["GET"])
 @token_required
